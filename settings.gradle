@@ -10,12 +10,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // MIUIX 
-        maven { url 'https://jitpack.io' } 
-        // LSPosed 
+        maven { url 'https://jitpack.io' }
         maven { url 'https://api.xposed.info/' }
     }
 }
-rootProject.name = "BatteryWhitelist"
+rootProject.name = "BatteryWhitelistPlus" 
 include ':app'
-android.suppressUnsupportedCompileSdk=36

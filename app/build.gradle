@@ -48,5 +48,5 @@ dependencies {
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
     // 🌟 引入 MIUIX Compose（这里用社区开源坐标，具体以你找到的库为准）
-    implementation 'com.github.Miuix:miuix-compose:0.9.4' // 示例坐标
+    // implementation 'com.github.Miuix:miuix-compose:0.9.4' // 示例坐标
 }

@@ -15,9 +15,7 @@ android {
         versionCode 1
         versionName "2.0.0"
     }
-    kotlin {
-    jvmToolchain(21)
-}
+    
 
     buildFeatures {
         compose true
@@ -37,6 +35,9 @@ android {
             aidl.srcDirs = ['src/main/aidl']
         }
     }
+}
+kotlin {
+    jvmToolchain(21)
 }
 
 dependencies {

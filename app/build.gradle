@@ -1,26 +1,27 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android' 
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose' // 引入 Kotlin 2.0 官方 Compose 插件
 }
+
 android {
     namespace 'com.batterywhitelist.plus'
-    compileSdk 36 
+    compileSdk 36 // 👈 必须 36，满足 MIUIX 要求
 
     defaultConfig {
         applicationId "com.batterywhitelist.plus"
-        minSdk 29 // LSPosed 要求 29+
+        minSdk 29
         targetSdk 36
         versionCode 1
-        versionName "1.0.0"
+        versionName "2.0.0"
     }
 
     buildFeatures {
         compose true
-        //aidl true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.8'
-    }
+
+    // 注意：Kotlin 2.0 配合 plugin.compose 后，这里不再需要 composeOptions 了！
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
@@ -28,25 +29,23 @@ android {
     kotlinOptions {
         jvmTarget = '21'
     }
+    sourceSets {
+        main {
+            aidl.srcDirs = ['src/main/aidl']
+        }
+    }
 }
 
 dependencies {
+    // LSPosed 依赖
     compileOnly 'io.github.libxposed:api:102.0.0@aar'
-    // LSPosed 102.0.0官方services
     compileOnly 'io.github.libxposed:service:102.0.0@aar'
-        // ===== 1. MIUIX 依赖 =====
-    // 基础 UI 组件 (必须)
+
+    // MIUIX 核心库
     implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.4'
     
-    // 可选组件（根据需要引入）：
-    // implementation 'top.yukonga.miuix.kmp:miuix-preference-android:0.9.4'
-    // implementation 'top.yukonga.miuix.kmp:miuix-icons-android:0.9.4'
-    
-    // ===== 2. Compose 基础依赖 =====
-    implementation platform('androidx.compose:compose-bom:2024.02.00')
-    implementation 'androidx.activity:activity-compose:1.8.2'
+    // Compose 基础组件 (交由 MIUIX 自动解析最新匹配版本)
     implementation 'androidx.compose.material3:material3'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
-    // 🌟 引入 MIUIX Compose（这里用社区开源坐标，具体以你找到的库为准）
-    // implementation 'com.github.Miuix:miuix-compose:0.9.4' // 示例坐标
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
 }

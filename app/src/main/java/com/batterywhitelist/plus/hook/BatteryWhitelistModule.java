@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.batterywhitelist;
+package com.batterywhitelist.plus.hook;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.Xml;
@@ -24,6 +25,10 @@ import android.util.Xml;
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModule;
 import io.github.libxposed.api.XposedModuleInterface;
+import io.github.libxposed.service.XposedServiceHelper;
+
+// 🌟 引入你刚刚创建的 AIDL 接口 (包名需与你的目录结构一致)
+import com.batterywhitelist.plus.core.service.IBatteryConfig;
 
 import org.xmlpull.v1.XmlPullParser;
 
@@ -43,33 +48,33 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * LSPosed 模块的核心入口类。
+ * LSPosed 模块的核心入口类 (Plus 版)。
  *
  * @author MikotoNetwork
- * @version 1.4.5
+ * @version 2.0.0
  */
 public class BatteryWhitelistModule extends XposedModule {
 
-    private static final String TAG = "BatteryWhitelist";
+    private static final String TAG = "BatteryWhitelistPlus";
     private static final String PREFS_NAME = "battery_whitelist_prefs";
     private static final String KEY_LIST = "protected_packages";
 
     // ★ UI 进程和 system_server 中 /data/user/0 与 /data/data 都可能存在，都试一下
     private static final String[] PREFS_XML_CANDIDATES = new String[] {
-            "/data/user/0/com.batterywhitelist/shared_prefs/battery_whitelist_prefs.xml",
-            "/data/data/com.batterywhitelist/shared_prefs/battery_whitelist_prefs.xml"
+            "/data/user/0/com.batterywhitelist.plus/shared_prefs/battery_whitelist_prefs.xml",
+            "/data/data/com.batterywhitelist.plus/shared_prefs/battery_whitelist_prefs.xml"
     };
 
-    private static final String LOG_PATH = "/data/system/BatteryWhitelist.log";
+    private static final String LOG_PATH = "/data/system/BatteryWhitelistPlus.log";
     private static final long LOG_MAX_BYTES = 1024L * 1024L;
     private static final int LOG_FLUSH_EVERY = 8; // ★ 攒够 8 条再 flush
 
     private static final long GUARDIAN_INTERVAL_MS = 60_000L;
     private static final long GUARDIAN_INITIAL_DELAY_MS = 15_000L;
-    private static final long EXEC_TIMEOUT_SEC = 5L; // ★ 合并 exec 后单次执行时间可能变长
+    private static final long EXEC_TIMEOUT_SEC = 5L; 
 
     private static final long REFRESH_MIN_INTERVAL_MS = 5_000L;
-    private static final long INIT_RETRY_BACKOFF_MS = 10_000L; // ★ 从 30s 降到 10s
+    private static final long INIT_RETRY_BACKOFF_MS = 10_000L; 
 
     private static final String[] CLS_DEVICE_IDLE_CANDIDATES = new String[] {
             "com.android.server.deviceidle.DeviceIdleController",
@@ -85,8 +90,8 @@ public class BatteryWhitelistModule extends XposedModule {
 
     private static final Object LOG_LOCK = new Object();
     private static BufferedWriter logWriter;
-    private static int logWriteCount = 0;         // ★ 未 flush 条数
-    private static int logFailCount = 0;          // ★ 连续失败计数
+    private static int logWriteCount = 0;         
+    private static int logFailCount = 0;          
     private static final int LOG_FAIL_REPORT_MAX = 20;
 
     private static void writeLog(String msg) {
@@ -107,7 +112,6 @@ public class BatteryWhitelistModule extends XposedModule {
                 logWriter.write(msg);
                 logWriter.write('\n');
 
-                // ★ 攒批 flush，减少 IO
                 if (++logWriteCount >= LOG_FLUSH_EVERY) {
                     logWriter.flush();
                     logWriteCount = 0;
@@ -128,13 +132,12 @@ public class BatteryWhitelistModule extends XposedModule {
     }
 
     private SharedPreferences prefs;
-    private volatile long lastInitAttemptElapsed;   // ★ volatile
-    private volatile long lastRefreshElapsed;       // ★ volatile
+    private volatile long lastInitAttemptElapsed;   
+    private volatile long lastRefreshElapsed;       
     private volatile Set<String> protectedPackages = Collections.emptySet();
     private final AtomicBoolean guardianStarted = new AtomicBoolean(false);
     private final Set<Method> hookedMethods = Collections.synchronizedSet(new HashSet<Method>());
 
-    // ★ XML 缓存，避免每次 Hook 都重新解析
     private volatile Set<String> lastXmlPackages = Collections.emptySet();
     private volatile long lastXmlMtime = -1L;
 
@@ -159,13 +162,12 @@ public class BatteryWhitelistModule extends XposedModule {
             if (systemContext == null) return;
 
             Context uiContext = systemContext.createPackageContext(
-                    "com.batterywhitelist", Context.CONTEXT_IGNORE_SECURITY);
+                    "com.batterywhitelist.plus", Context.CONTEXT_IGNORE_SECURITY);
             prefs = uiContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             writeLog("成功连接 UI 配置！");
         } catch (Throwable ignored) {}
     }
 
-    // ★ 直接读取 UI 进程的 SharedPreferences XML，绕过 SharedPreferences 的跨进程缓存问题
     private Set<String> readPackagesFromXml() {
         try {
             File f = null;
@@ -226,14 +228,12 @@ public class BatteryWhitelistModule extends XposedModule {
         if (now - lastRefreshElapsed < REFRESH_MIN_INTERVAL_MS) return;
         lastRefreshElapsed = now;
 
-        // ★ 优先从 XML 读，UI 改配置后立即可见
         Set<String> fromXml = readPackagesFromXml();
         if (fromXml != null) {
             protectedPackages = Collections.unmodifiableSet(new HashSet<>(fromXml));
             return;
         }
 
-        // 兜底：UI 还没创建 XML 时，退回 SharedPreferences
         initPrefs();
         if (prefs == null) return;
 
@@ -268,6 +268,40 @@ public class BatteryWhitelistModule extends XposedModule {
         hookOplusHansManager(loader);
         hookOplusDeviceIdleHelperDefault(loader);
         startGuardianThread();
+
+        // 🌟 注册 LSPosed Services API (AIDL)
+        try {
+            XposedServiceHelper.registerService("battery_config_service", new IBatteryConfig.Stub() {
+                @Override
+                public void updateWhitelist(String[] packages) throws RemoteException {
+                    Set<String> newSet = new HashSet<>();
+                    Collections.addAll(newSet, packages);
+                    protectedPackages = Collections.unmodifiableSet(newSet);
+                    writeLog("AIDL 实时更新: 收到 " + packages.length + " 个包名");
+                    
+                    // 立刻唤醒守护线程强刷一次，实现毫秒级生效
+                    new Thread(() -> {
+                        StringBuilder sb = new StringBuilder();
+                        for (String pkg : newSet) {
+                            sb.append("cmd deviceidle whitelist +").append(pkg).append('\n');
+                            sb.append("appops set ").append(pkg).append(" RUN_IN_BACKGROUND allow\n");
+                            sb.append("appops set ").append(pkg).append(" RUN_ANY_IN_BACKGROUND allow\n");
+                        }
+                        if (sb.length() > 0) {
+                            safeExec("/system/bin/sh", "-c", sb.toString());
+                        }
+                    }, "AIDL-Force-Flush").start();
+                }
+
+                @Override
+                public String[] getCurrentWhitelist() throws RemoteException {
+                    return protectedPackages.toArray(new String[0]);
+                }
+            });
+            writeLog("AIDL 服务注册成功: battery_config_service");
+        } catch (Throwable t) {
+            writeLog("AIDL 服务注册失败", t);
+        }
 
         writeLog("防御网布置完毕！");
     }
@@ -323,7 +357,6 @@ public class BatteryWhitelistModule extends XposedModule {
                 final String name = m.getName();
                 final Method target = m;
 
-                // ★ 改成 switch，逻辑更清晰
                 switch (name) {
                     case M_IN_CACHED_FK_WL:
                     case M_IN_ANDROID_FK_WL:
@@ -342,7 +375,6 @@ public class BatteryWhitelistModule extends XposedModule {
                         break;
 
                     case M_HANDLE_REMOVE_TASK:
-                        // ★ 不再硬编码 args.get(2)，改为遍历所有参数
                         hookMethod(target, new XposedInterface.Hooker() {
                             @Override
                             public Object intercept(XposedInterface.Chain chain) throws Throwable {
@@ -509,7 +541,6 @@ public class BatteryWhitelistModule extends XposedModule {
                 forceRefreshProtectedPackages();
                 Set<String> snapshot = protectedPackages;
 
-                // ★ 合并成一次 sh -c 执行，避免 fork 风暴
                 if (!snapshot.isEmpty()) {
                     StringBuilder sb = new StringBuilder(snapshot.size() * 128);
                     for (String pkg : snapshot) {
@@ -580,7 +611,6 @@ public class BatteryWhitelistModule extends XposedModule {
 
     @SuppressWarnings("unchecked")
     private void injectIntoList(List<?> rawList, String from) {
-        // ★ 去掉了永远为 false 的 instanceof 判断
         try {
             List<Object> list = (List<Object>) rawList;
             refreshProtectedPackages();

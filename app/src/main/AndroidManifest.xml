@@ -22,7 +22,7 @@
 
         <!-- 主 Activity，不再挂载 LAUNCHER 意图 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true">
         </activity>
 
@@ -31,7 +31,7 @@
             android:name=".LauncherAlias"
             android:enabled="true"
             android:exported="true"
-            android:targetActivity=".MainActivity">
+            android:targetActivity=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -39,15 +39,14 @@
         </activity-alias>
 
         <!-- 用于安装 APK 的 FileProvider -->
-        <provider
-            android:name="android.support.v4.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
-
+<provider
+    android:name="androidx.core.content.FileProvider"
+    android:authorities="${applicationId}.fileprovider"
+    android:exported="false"
+    android:grantUriPermissions="true">
+    <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS" 
+        android:resource="@xml/file_paths" />
+</provider>
     </application>
 </manifest>

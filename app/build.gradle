@@ -1,7 +1,6 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.plugin.compose' // 引入 Kotlin 2.0 官方 Compose 插件
 }
 
 android {

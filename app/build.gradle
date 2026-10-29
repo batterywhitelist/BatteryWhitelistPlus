@@ -1,16 +1,14 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-
+    id 'org.jetbrains.kotlin.android' 
 }
-
 android {
     namespace 'com.batterywhitelist.plus'
     compileSdk 37 
 
     defaultConfig {
         applicationId "com.batterywhitelist.plus"
-        minSdk 29 // LSPosed 通常要求 29+
+        minSdk 29 // LSPosed 要求 29+
         targetSdk 37
         versionCode 1
         versionName "1.0.0"

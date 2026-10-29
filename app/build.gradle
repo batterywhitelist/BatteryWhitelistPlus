@@ -19,7 +19,7 @@ android {
         //aidl true
     }
     composeOptions {
-        // 如果你用 Kotlin 2.0+，不需要写这个了，用 plugin.compose 即可
+        kotlinCompilerExtensionVersion '1.5.8'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21

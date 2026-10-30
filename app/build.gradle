@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.batterywhitelist.plus'
-    compileSdk 34 // 👈 必须 36，满足 MIUIX 要求
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.batterywhitelist.plus"
         minSdk 29
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName "2.0.0"
     }
@@ -45,10 +45,10 @@ dependencies {
     compileOnly 'io.github.libxposed:service:102.0.0@aar'
 
     // MIUIX 核心库
-    implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.8.5'
+    implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.4'
     
-    // Compose 基础组件 (交由 MIUIX 自动解析最新匹配版本)
-    implementation 'androidx.compose.material3:material3:1.1.2'
-    implementation 'androidx.activity:activity-compose:1.8.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
+   // Compose 基础组件 (交由 MIUIX 自动解析最新匹配版本)
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
 }

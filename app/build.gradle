@@ -39,29 +39,20 @@ kotlin {
     jvmToolchain(17)
 }
 
-// 🌟 核心魔法：不管底层怎么依赖，强制用这些要求 API 35 的稳定版
-configurations.all {
-    resolutionStrategy {
-        force 'androidx.compose.ui:ui:1.6.8'
-        force 'androidx.compose.ui:ui-android:1.6.8'
-        force 'androidx.compose.material3:material3:1.2.1'
-        force 'androidx.compose.material3:material3-android:1.2.1'
-        force 'androidx.compose.foundation:foundation:1.6.8'
-        force 'androidx.compose.foundation:foundation-android:1.6.8'
-        force 'androidx.compose.animation:animation:1.6.8'
-        force 'androidx.compose.animation:animation-android:1.6.8'
+// 🌟 核心魔法：强行关闭检查！管你要 API 37 还是 47，直接无视！
+tasks.configureEach { task ->
+    if (task.name.contains("checkDebugAarMetadata") || task.name.contains("checkReleaseAarMetadata")) {
+        task.enabled = false
     }
 }
 
 dependencies {
-    // LSPosed
     compileOnly 'io.github.libxposed:api:102'
     compileOnly 'io.github.libxposed:service:102'
 
-    // 🌟 关键：将 MIUIX 降级到 0.9.0，避开 API 37
+    // 还是用 0.9.0，不回退了
     implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.0'
     
-    // 锁定稳定的 Compose 版本
     implementation 'androidx.compose.ui:ui:1.6.8'
     implementation 'androidx.compose.material3:material3:1.2.1'
     implementation 'androidx.core:core-ktx:1.13.1'

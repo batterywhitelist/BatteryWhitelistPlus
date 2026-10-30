@@ -24,16 +24,24 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      # 🌟 新增：安装 Android SDK 命令行工具
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+
+      # 🌟 新增：强制下载 API 36，解决找不到 36 退回 35 的报错
+      - name: Install Android 36 SDK
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
       - name: Clean Gradle Cache
         run: rm -rf ~/.gradle/caches
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
-        with:
-          gradle-version: '8.5'
 
+      # 🌟 修改：使用 ./gradlew 而不是全局的 gradle，这样它就会读取你项目里的 8.9 版本
       - name: Build Debug APK
-        run: gradle clean assembleDebug --no-daemon --stacktrace
+        run: ./gradlew clean assembleDebug --no-daemon --stacktrace
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

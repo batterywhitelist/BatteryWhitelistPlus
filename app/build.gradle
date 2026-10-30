@@ -4,7 +4,6 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose' 
 }
 
-// 🌟 核心魔法 1：强行把 Java 改回 17，解决 No matching variant 报错
 android {
     namespace 'com.batterywhitelist.plus'
     compileSdk 36
@@ -15,6 +14,14 @@ android {
         targetSdk 36
         versionCode 1
         versionName "2.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false       
+            shrinkResources false      
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
     }
 
     buildFeatures {
@@ -40,21 +47,16 @@ kotlin {
     jvmToolchain(17)
 }
 
-// 🌟 核心魔法 2：如果底层的 Compose 库偷偷想拉 1.16.0，强制让它用 1.13.1
-configurations.all {
-    resolutionStrategy {
-        force 'androidx.core:core:1.13.1'
-        force 'androidx.core:core-ktx:1.13.1'
-    }
-}
-
 dependencies {
-    compileOnly 'io.github.libxposed:api:102.0.0'
-    compileOnly 'io.github.libxposed:service:102.0.0'
+    // 🌟 重点：LSPosed 直接用 Maven Central 坐标，千万别加 @aar，否则会去 JitPack 找不到！
+    compileOnly 'io.github.libxposed:api:102'
+    compileOnly 'io.github.libxposed:service:102'
 
+    // 🌟 重点：MIUIX 0.9.4
     implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.4'
     
-    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    // 🌟 重点：用 BOM 锁死 Compose 版本，防止它乱拉 alpha 版本报错
+    implementation platform('androidx.compose:compose-bom:2024.09.00')
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.material3:material3'
     

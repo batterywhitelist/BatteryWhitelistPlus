@@ -24,9 +24,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = '17'
-    }
     
     sourceSets {
         main {
@@ -35,27 +32,25 @@ android {
     }
 }
 
+// 注意：删掉了 kotlinOptions，只保留 jvmToolchain，彻底杜绝冲突
 kotlin {
     jvmToolchain(17)
 }
 
-// 🌟 核心魔法：强行关闭检查！管你要 API 37 还是 47，直接无视！
-tasks.configureEach { task ->
-    if (task.name.contains("checkDebugAarMetadata") || task.name.contains("checkReleaseAarMetadata")) {
-        task.enabled = false
-    }
-}
-
 dependencies {
+    // LSPosed (老老实实用带 .0.0@aar 的格式)
     compileOnly 'io.github.libxposed:api:102.0.0@aar'
     compileOnly 'io.github.libxposed:service:102.0.0@aar'
 
-    // 还是用 0.9.0，不回退了
+    // MIUIX 核心库 (0.9.0)
     implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.0'
     
-    implementation 'androidx.compose.ui:ui:1.6.8'
-    implementation 'androidx.compose.material3:material3:1.2.1'
+    // 🌟 官方 BOM，锁定所有 Compose 组件版本，防冲突防错乱
+    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.foundation:foundation'
+    
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.activity:activity-compose:1.9.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
 }

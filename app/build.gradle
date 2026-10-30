@@ -36,24 +36,13 @@ kotlin {
     jvmToolchain(17)
 }
 
-// 🌟 核心魔法：直接关闭 AAR 元数据检查任务！管你要 API 37 还是 47，统统放行！
-tasks.configureEach { task ->
-    if (task.name.contains("checkDebugAarMetadata") || task.name.contains("checkReleaseAarMetadata")) {
-        task.enabled = false
-    }
-}
-
 dependencies {
-    // LSPosed (老老实实带上版本号)
+    // LSPosed
     compileOnly 'io.github.libxposed:api:102.0.0@aar'
     compileOnly 'io.github.libxposed:service:102.0.0@aar'
 
-    // MIUIX (0.9.0 稳定版)
-    implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.0'
-    
-    // 基础 Compose 库（写死版本号，绝对不拉最新的）
+    // 🌟 删掉了 MIUIX，只用最稳的官方 Compose
     implementation 'androidx.compose.ui:ui:1.6.8'
     implementation 'androidx.compose.material3:material3:1.2.1'
-    implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.activity:activity-compose:1.9.0'
 }

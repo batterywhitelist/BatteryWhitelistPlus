@@ -3,6 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose' 
 }
+
+// 🌟 核心魔法 1：强行把 Java 改回 17，解决 No matching variant 报错
 android {
     namespace 'com.batterywhitelist.plus'
     compileSdk 36
@@ -14,41 +16,49 @@ android {
         versionCode 1
         versionName "2.0.0"
     }
-    
 
     buildFeatures {
         compose true
     }
 
-    // 注意：Kotlin 2.0 配合 plugin.compose 后，这里不再需要 composeOptions 了！
-
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '21'
+        jvmTarget = '17'
     }
+    
     sourceSets {
         main {
             aidl.srcDirs = ['src/main/aidl']
         }
     }
 }
+
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
+}
+
+// 🌟 核心魔法 2：如果底层的 Compose 库偷偷想拉 1.16.0，强制让它用 1.13.1
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.core:core:1.13.1'
+        force 'androidx.core:core-ktx:1.13.1'
+    }
 }
 
 dependencies {
-    // LSPosed 依赖
     compileOnly 'io.github.libxposed:api:102.0.0@aar'
     compileOnly 'io.github.libxposed:service:102.0.0@aar'
 
-    // MIUIX 核心库
     implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.4'
     
-   // Compose 基础组件 (交由 MIUIX 自动解析最新匹配版本)
+    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.material3:material3'
+    
+    implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.activity:activity-compose:1.9.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
 }

@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace 'com.batterywhitelist.plus'
-    compileSdk 36 
+    compileSdk 36 // 👈 保持 36，满足 MIUIX 要求
 
     defaultConfig {
         applicationId "com.batterywhitelist.plus"
@@ -39,19 +39,32 @@ kotlin {
     jvmToolchain(17)
 }
 
+// 🌟 核心魔法：暴力拦截那些想要 API 37 的“超前”依赖，强行锁死在稳定版！
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.compose.material3:material3:1.3.1'
+        force 'androidx.compose.material3:material3-android:1.3.1'
+        force 'androidx.compose.ui:ui:1.7.8'
+        force 'androidx.compose.ui:ui-android:1.7.8'
+        force 'androidx.compose.foundation:foundation:1.7.8'
+        force 'androidx.compose.foundation:foundation-android:1.7.8'
+        force 'androidx.compose.animation:animation:1.7.8'
+        force 'androidx.compose.animation:animation-android:1.7.8'
+    }
+}
+
 dependencies {
-    // LSPosed
+    // LSPosed 依赖
     compileOnly 'io.github.libxposed:api:102'
     compileOnly 'io.github.libxposed:service:102'
 
-    // MIUIX
+    // MIUIX 核心库
     implementation 'top.yukonga.miuix.kmp:miuix-ui-android:0.9.4'
     
-    // 🌟 写死稳定的 Compose 基础版本，绝对不会去拉那些烦人的 alpha 版本了
+    // 基础组件，锁定版本号，不准乱拉最新版
     implementation 'androidx.compose.ui:ui:1.7.8'
     implementation 'androidx.compose.material3:material3:1.3.1'
-    
-    implementation 'androidx.core:core-ktx:1.15.0' // 锁定这个版本，它不会强求 36
-    implementation 'androidx.activity:activity-compose:1.10.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
 }
